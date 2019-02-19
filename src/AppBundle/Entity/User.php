@@ -36,7 +36,7 @@ class User
     private $email;
 
     /**
-     * @var Group
+     * @var UserGroup
      *
      * @ORM\ManyToOne(targetEntity="UserGroup", inversedBy="users")
      * @ORM\JoinColumn(name="group_id", referencedColumnName="id")
@@ -105,7 +105,7 @@ class User
     /**
      * Return group
      *
-     * @return Group 
+     * @return UserGroup 
      * @author Mykola Martynov
      */
     public function getGroup()
@@ -116,11 +116,11 @@ class User
     /**
      * Set group
      *
-     * @param  Group  $group
+     * @param  UserGroup  $group
      * @return $this
      * @author Mykola Martynov
      */
-    public function setGroup($group)
+    public function setGroup(UserGroup $group = null)
     {
         $this->group = $group;
     

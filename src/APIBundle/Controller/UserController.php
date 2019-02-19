@@ -58,13 +58,13 @@ class UserController extends Controller
     }
 
     /**
-     * @Route("/create", methods={"PUT"})
+     * @Route("/create", methods={"POST"})
      */
     public function createAction(Request $request)
     {
         $user_info = $this->fetchUserInfo($request);
         if (!$this->isValidUserInfo($user_info)) {
-            return new JsonResponse(['status' => 'failed']);
+            return new JsonResponse(['status' => 'failed', 'error' => 'misused data']);
         }
 
         $user = new User();
@@ -74,15 +74,19 @@ class UserController extends Controller
         ;
 
         $group = $this->getUserGroup($user_info['group']);
-        if (!empty($group)) {
-            $user->setGroup($group);
+        $user->setGroup($group);
+
+        try {
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($user);
+            $em->flush();
+        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'user with given email already exists']);
+        } catch (\Exception $ex) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'unexpected']);
         }
 
-        $em = $this->getDoctrine()->getManager();
-        $em->persist($user);
-        $em->flush();
-
-        return new JsonResponse(['status' => 'success', 'user_id' => $user->getId()]);
+        return new JsonResponse(['status' => 'success', 'user_id' => $user->getId()], JsonResponse::HTTP_CREATED);
     }
 
     /**
@@ -94,8 +98,12 @@ class UserController extends Controller
      **/
     private function fetchUserInfo(Request $request)
     {
-        // !!! stub
-        return [];
+        $rr = $request->request;
+        $name = $rr->get('name');
+        $email = $rr->get('email');
+        $group = $rr->get('group');
+
+        return compact('name', 'email', 'group');
     }
 
     /**
@@ -107,8 +115,15 @@ class UserController extends Controller
      **/
     private function isValidUserInfo($user_info)
     {
-        // !!! stub
-        return false;
+        $required = ['name', 'email'];
+
+        foreach ($required as $field_name) {
+            if (empty($user_info[$field_name])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -120,8 +135,21 @@ class UserController extends Controller
      **/
     private function getUserGroup($group_name)
     {
-        // !!! stub
-        return null;
+        if (empty($group_name)) {
+            return null;
+        }
+
+        $em = $this->getDoctrine()->getManager();
+        $repo = $em->getRepository('AppBundle:UserGroup');
+
+        $group = $repo->findOneByName($group_name);
+        if (empty($group)) {
+            $group = new UserGroup();
+            $group->setName($group_name);
+            $em->persist($group);
+        }
+
+        return $group;
     }
 
     /**
