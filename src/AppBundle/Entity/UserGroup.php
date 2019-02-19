@@ -73,5 +73,16 @@ class UserGroup
     {
         return $this->name;
     }
+
+    /**
+     * Get users
+     *
+     * @return User[]
+     * @author Mykola Martynov
+     **/
+    public function getUsers()
+    {
+        return $this->users->toArray();
+    }
 }
 

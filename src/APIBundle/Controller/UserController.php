@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use AppBundle\Entity\User;
 use AppBundle\Entity\UserGroup;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use APIBundle\Utils\APIUtils;
 
 /**
  * @Route("/users")
@@ -16,34 +17,12 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 class UserController extends Controller
 {
     /**
-     * Return user information to use in api responses.
-     *
-     * @param  User  $user
-     * @return array
-     * @author Mykola Martynov
-     **/
-    private function user_info(User $user)
-    {
-        $info = [
-            'id' => $user->getId(),
-            'name' => $user->getName(),
-            'email' => $user->getEmail(),
-        ];
-
-        if ($user->hasGroup()) {
-            $info['group'] = $user->getGroup()->getName();
-        }
-
-        return $info;
-    }
-
-    /**
      * @Route("/", methods={"GET"})
      */
     public function listAction()
     {
         $users = $this->getDoctrine()->getRepository('AppBundle:User')->findAll();
-        $users_info = array_map([$this, 'user_info'], $users);
+        $users_info = array_map(['APIBundle\Utils\APIUtils', 'user_info'], $users);
 
         return new JsonResponse($users_info);
     }
@@ -54,7 +33,7 @@ class UserController extends Controller
      */
     public function infoAction(User $user)
     {
-        return new JsonResponse($this->user_info($user));
+        return new JsonResponse(APIUtils::user_info($user));
     }
 
     /**

@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use AppBundle\Entity\User;
 use AppBundle\Entity\UserGroup;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use APIBundle\Utils\APIUtils;
 
 /**
  * @Route("/users/group")
@@ -16,18 +17,20 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 class UserGroupController extends Controller
 {
     /**
-     * Return group information to use in api response.
+     * Return group information with associated users to use in api response.
      *
      * @param  UserGroup  $group
      * @return array
      * @author Mykola Martynov
      **/
-    private function group_info(UserGroup $group)
+    private function group_info_with_users(UserGroup $group)
     {
-        $info = [
-            'id' => $group->getId(),
-            'name' => $group->getName(),
-        ];
+        $info = APIUtils::group_info($group);
+        $info['users'] = array_map(function($user) {
+            $user_info = APIUtils::user_info($user);
+            unset($user_info['group']);
+            return $user_info;
+        }, $group->getUsers());
 
         return $info;
     }
@@ -49,8 +52,7 @@ class UserGroupController extends Controller
      */
     public function infoAction(UserGroup $group)
     {
-        // !!! stub
-        return new JsonResponse();
+        return new JsonResponse($this->group_info_with_users($group));
     }
 
     /**
