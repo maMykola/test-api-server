@@ -67,14 +67,14 @@ class UserController extends Controller
             return new JsonResponse(['status' => 'failed', 'error' => 'misused data']);
         }
 
+        $this->modifyUserInfo($user_info);
+
         $user = new User();
         $user
             ->setName($user_info['name'])
             ->setEmail($user_info['email'])
+            ->setGroup($user_info['group'])
         ;
-
-        $group = $this->getUserGroup($user_info['group']);
-        $user->setGroup($group);
 
         try {
             $em = $this->getDoctrine()->getManager();
@@ -87,6 +87,20 @@ class UserController extends Controller
         }
 
         return new JsonResponse(['status' => 'success', 'user_id' => $user->getId()], JsonResponse::HTTP_CREATED);
+    }
+
+    /**
+     * Change some fields to have valid types.
+     *
+     * @param  array  $user_info
+     * @return void
+     * @author Mykola Martynov
+     **/
+    private function modifyUserInfo(&$user_info)
+    {
+        if (array_key_exists('group', $user_info)) {
+            $user_info['group'] = $this->getUserGroup($user_info['group']);
+        }
     }
 
     /**
@@ -161,6 +175,34 @@ class UserController extends Controller
         $em = $this->getDoctrine()->getManager();
         $em->remove($user);
         $em->flush();
+
+        return new JsonResponse(['status' => 'success']);
+    }
+
+    /**
+     * @Route("/{id}/update", requirements={"id"="\d+"}, methods={"POST"})
+     * @ParamConverter("user", class="AppBundle:User")
+     **/
+    public function editAction(User $user, Request $request)
+    {
+        $user_info = array_filter($this->fetchUserInfo($request));
+        if (empty($user_info)) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'misused data']);
+        }
+
+        $this->modifyUserInfo($user_info);
+        $fields_list = ['name', 'email', 'group'];
+
+        foreach ($fields_list as $field_name) {
+            if (!array_key_exists($field_name, $user_info)) {
+                continue;
+            }
+
+            $method = 'set' . ucfirst($field_name);
+            $user->$method($user_info[$field_name]);
+        }
+
+        $this->getDoctrine()->getManager()->flush();
 
         return new JsonResponse(['status' => 'success']);
     }
