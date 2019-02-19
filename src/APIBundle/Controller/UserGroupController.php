@@ -90,8 +90,10 @@ class UserGroupController extends Controller
      **/
     private function fetchGroupInfo(Request $request)
     {
-        // !!! stub
-        return [];
+        $rr = $request->request;
+        $name = $rr->get('name');
+
+        return compact('name');
     }
 
     /**
@@ -103,8 +105,15 @@ class UserGroupController extends Controller
      **/
     private function isValidGroupInfo($group_info)
     {
-        // !!! stub
-        return false;
+        $required = ['name'];
+
+        foreach ($required as $field_name) {
+            if (empty($group_info[$field_name])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
