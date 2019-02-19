@@ -5,6 +5,8 @@ namespace APIBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use AppBundle\Entity\User;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 /**
  * @Route("/users")
@@ -12,17 +14,37 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class UserController extends Controller
 {
     /**
+     * Return user information to use in api responses.
+     *
+     * @param  User  $user
+     * @return array
+     * @author Mykola Martynov
+     **/
+    private function user_info(User $user)
+    {
+        return [
+            'id' => $user->getId(),
+            'name' => $user->getName(),
+            'email' => $user->getEmail(),
+        ];
+    }
+
+    /**
      * @Route("/", methods={"GET"})
      */
     public function listAction()
     {
-        return new JsonResponse([]);
+        $users = $this->getDoctrine()->getRepository('AppBundle:User')->findAll();
+        $users_info = array_map([$this, 'user_info'], $users);
+
+        return new JsonResponse($users_info);
     }
 
     /**
      * @Route("/{id}", requirements={"id"="\d+"}, methods={"GET", "HEAD"})
+     * @ParamConverter("user", class="AppBundle:User")
      */
-    public function infoAction($id)
+    public function infoAction(User $user)
     {
         return new JsonResponse([]);
     }
@@ -37,8 +59,9 @@ class UserController extends Controller
 
     /**
      * @Route("/{id}/delete", requirements={"id"="\d+"}, methods={"GET"})
+     * @ParamConverter("user", class="AppBundle:User")
      */
-    public function deleteAction($id)
+    public function deleteAction(User $user)
     {
         return new JsonResponse([]);
     }
