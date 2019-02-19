@@ -181,7 +181,13 @@ class UserController extends Controller
             $user->$method($user_info[$field_name]);
         }
 
-        $this->getDoctrine()->getManager()->flush();
+        try {
+            $this->getDoctrine()->getManager()->flush();
+        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'new email address already used']);
+        } catch (\Exception $ex) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'unexpected']);
+        }
 
         return new JsonResponse(['status' => 'success']);
     }
