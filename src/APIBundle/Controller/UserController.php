@@ -158,7 +158,11 @@ class UserController extends Controller
      */
     public function deleteAction(User $user)
     {
-        return new JsonResponse([]);
+        $em = $this->getDoctrine()->getManager();
+        $em->remove($user);
+        $em->flush();
+
+        return new JsonResponse(['status' => 'success']);
     }
 
 }
