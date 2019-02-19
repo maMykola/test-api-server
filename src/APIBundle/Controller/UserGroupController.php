@@ -16,12 +16,31 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 class UserGroupController extends Controller
 {
     /**
+     * Return group information to use in api response.
+     *
+     * @param  UserGroup  $group
+     * @return array
+     * @author Mykola Martynov
+     **/
+    private function group_info(UserGroup $group)
+    {
+        $info = [
+            'id' => $group->getId(),
+            'name' => $group->getName(),
+        ];
+
+        return $info;
+    }
+
+    /**
      * @Route("/", methods={"GET"})
      */
     public function listAction()
     {
-        // !!! stub
-        return new JsonResponse();
+        $user_groups = $this->getDoctrine()->getRepository('AppBundle:UserGroup')->findAll();
+        $groups_info = array_map([$this, 'group_info'], $user_groups);
+
+        return new JsonResponse($groups_info);
     }
 
     /**
