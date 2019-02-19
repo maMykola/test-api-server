@@ -122,8 +122,17 @@ class UserGroupController extends Controller
      */
     public function deleteAction(UserGroup $group)
     {
-        // !!! stub
-        return new JsonResponse();
+        try {
+            $em = $this->getDoctrine()->getManager();
+            $em->remove($group);
+            $em->flush();
+        } catch (\Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException $ex) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'Cannot delete non-empty group']);
+        } catch (\Exception $ex) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'unexpected']);
+        }
+
+        return new JsonResponse(['status' => 'success']);
     }
 
     /**
