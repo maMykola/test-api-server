@@ -22,11 +22,17 @@ class UserController extends Controller
      **/
     private function user_info(User $user)
     {
-        return [
+        $info = [
             'id' => $user->getId(),
             'name' => $user->getName(),
             'email' => $user->getEmail(),
         ];
+
+        if ($user->hasGroup()) {
+            $info['group'] = $user->getGroup()->getName();
+        }
+
+        return $info;
     }
 
     /**

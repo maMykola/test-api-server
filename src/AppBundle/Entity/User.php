@@ -126,5 +126,16 @@ class User
     
         return $this;
     }
+
+    /**
+     * Return true if user is in group
+     *
+     * @return boolean
+     * @author Mykola Martynov
+     **/
+    public function hasGroup()
+    {
+        return !empty($this->group);
+    }
 }
 
