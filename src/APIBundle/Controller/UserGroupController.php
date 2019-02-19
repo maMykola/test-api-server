@@ -60,8 +60,51 @@ class UserGroupController extends Controller
      */
     public function createAction(Request $request)
     {
+        $group_info = $this->fetchGroupInfo($request);
+        if (!$this->isValidGroupInfo($group_info)) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'misused data']);
+        }
+
+        $group = new UserGroup();
+        $group->setName($group_info['name']);
+        
+        try {
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($group);
+            $em->flush();
+        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'group with given name already exists']);
+        } catch (\Exception $ex) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'unexpected']);
+        }
+
+        return new JsonResponse(['status' => 'success', 'group_id' => $group->getId()], JsonResponse::HTTP_CREATED);
+    }
+
+    /**
+     * Return group information from the post request.
+     *
+     * @param  Request  $request
+     * @return array
+     * @author Mykola Martynov
+     **/
+    private function fetchGroupInfo(Request $request)
+    {
         // !!! stub
-        return new JsonResponse();
+        return [];
+    }
+
+    /**
+     * Return true if group information has all data to create new group.
+     *
+     * @param  array  $group_info
+     * @return boolean
+     * @author Mykola Martynov
+     **/
+    private function isValidGroupInfo($group_info)
+    {
+        // !!! stub
+        return false;
     }
 
     /**
