@@ -46,7 +46,7 @@ class UserController extends Controller
      */
     public function infoAction(User $user)
     {
-        return new JsonResponse([]);
+        return new JsonResponse($this->user_info($user));
     }
 
     /**
