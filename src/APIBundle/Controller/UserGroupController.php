@@ -136,13 +136,36 @@ class UserGroupController extends Controller
     }
 
     /**
-     * @Route("/{id}/update", requirements={"id"="\d+"}, methods={"GET"})
+     * @Route("/{id}/update", requirements={"id"="\d+"}, methods={"POST"})
      * @ParamConverter("group", class="AppBundle:UserGroup")
      */
-    public function editAction(UserGroup $group)
+    public function editAction(UserGroup $group, Request $request)
     {
-        // !!! stub
-        return new JsonResponse();
+        $group_info = array_filter($this->fetchGroupInfo($request));
+        if (empty($group_info)) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'misused data']);
+        }
+
+        $fields_list = ['name'];
+
+        foreach ($fields_list as $field_name) {
+            if (!array_key_exists($field_name, $group_info)) {
+                continue;
+            }
+
+            $method = 'set' . ucfirst($field_name);
+            $group->$method($group_info[$field_name]);
+        }
+
+        try {
+            $this->getDoctrine()->getManager()->flush();
+        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'group with given name already exists']);
+        } catch (\Exception $ex) {
+            return new JsonResponse(['status' => 'failed', 'error' => 'unexpected']);
+        }
+
+        return new JsonResponse(['status' => 'success']);
     }
 
 }
