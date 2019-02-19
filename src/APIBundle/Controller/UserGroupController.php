@@ -41,7 +41,7 @@ class UserGroupController extends Controller
     public function listAction()
     {
         $user_groups = $this->getDoctrine()->getRepository('AppBundle:UserGroup')->findAll();
-        $groups_info = array_map([$this, 'group_info'], $user_groups);
+        $groups_info = array_map(['APIBundle\Utils\APIUtils', 'group_info'], $user_groups);
 
         return new JsonResponse($groups_info);
     }
